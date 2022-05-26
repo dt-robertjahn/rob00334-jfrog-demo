@@ -17,9 +17,12 @@ spec:
       sendFinished: true
     - type: sh.keptn.event.deployment.triggered
       requests:
-        - curl --request POST --data
-          '{"IMAGE_TAG":"{{.data.release.imageTag}}"}'
-          https://{{.env.secret_jfrogdemo_jfrogdemowebhookdeploy}}
+        - "curl --header 'Content-type: application/json' --request POST --data
+          '{\"imageTag\":\"{{.data.release.imageTag}}\",\"type\":\"{{.type}}\",\
+          \"project\":\"{{.data.project}}\",\"service\":\"{{.data.service}}\",\
+          \"stage\":\"{{.data.stage}}\",\"shkeptncontext\":\"{{.shkeptncontext}}\
+          \",\"id\":\"{{.id}}\"}'
+          https://{{.env.secret_jfrogdemo_jfrogdemowebhookdeploy}}"
       envFrom:
         - name: secret_jfrogdemo_jfrogdemowebhookdeploy
           secretRef:
