@@ -39,6 +39,6 @@ spec:
         - name: DT_RELEASE_STAGE
           value: "{{ .Values.namespace }}"
         - name: DT_RELEASE_BUILD_VERSION
-          value: "{{ .Values.buildNo }}"
+          value: "{{ (split .Values.imageTag ".")._2 }}"
       imagePullSecrets:
       - name: {{ .Values.imagePullSecrets }}
