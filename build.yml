@@ -15,14 +15,14 @@ resources:
       registry: artifactoryIntegration                                    
       sourceRepository: art-docker-dynatrace                             
       imageName: dtdemos.jfrog.io/art-docker-dynatrace/demoapp    
-      imageTag: ${BUILD_NUMBER}
+      imageTag: ${APP_BUILD_NUMBER}
 
   - name: demoappBuildInfo
     type: BuildInfo
     configuration:
       sourceArtifactory: artifactoryIntegration   
       buildName: demoapp                                 
-      buildNumber: ${BUILD_NUMBER}                           
+      buildNumber: ${APP_BUILD_NUMBER}                           
 
   - name: demoappHelmChart
     type: HelmChart
@@ -30,7 +30,6 @@ resources:
       sourceArtifactory: artifactoryIntegration       
       repository: art-helm-charts-dynatrace                
       chart: demoapp                           
-      version: 0.0.0
 
 pipelines:
   - name: jfrogdemo_build_pipeline
@@ -54,11 +53,11 @@ pipelines:
           dockerFileLocation: demoapp
           dockerFileName: Dockerfile
           dockerImageName: dtdemos.jfrog.io/art-docker-dynatrace/demoapp
-          dockerImageTag: ${BUILD_NUMBER}
+          dockerImageTag: ${APP_BUILD_NUMBER}
           dockerOptions: --build-arg FEATURE_NUMBER=${FEATURE_NUMBER}
         execution:
           onStart:
-            - add_run_variables BUILD_NUMBER=0.${FEATURE_NUMBER}.${run_number}
+            - add_run_variables APP_BUILD_NUMBER=0.${FEATURE_NUMBER}.${run_number}
 
       - name: bDockerPush
         type: DockerPush
