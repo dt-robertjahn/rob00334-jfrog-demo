@@ -52,9 +52,9 @@ pipelines:
         execution:
           onStart:
             - echo "$res_jfrogdemo_webhook_deploy_payload" | jq '.' > payload.json
-            - echo payload.json
+            - cat payload.json
             - add_run_variables imageTag=$(read_json payload.json "IMAGE_TAG")
-            - if [ -z $imageTag ] ; then echo "Failure No IMAGE_TAG" && exit 1 ; fi
+            - if [[ $imageTag == "null" ]] ; then echo "Failure No IMAGE_TAG" && exit 1 ; fi
             - echo "Deploying imageTag ${imageTag}"
           onSuccess:
             - kubectl config current-context
