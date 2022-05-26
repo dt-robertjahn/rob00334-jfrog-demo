@@ -13,3 +13,4 @@ spec:
         - name: evaluation
           properties:
             timeframe: 5m
+        - name: notify
