@@ -38,3 +38,48 @@ pipelines:
             - APP_IP=$(kubectl -n ${KEPTN_STAGE} get service ${KEPTN_SERVICE} -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
             - add_run_variables APP_URL="http://${APP_IP}:8080"
             - $res_gitRepoTest_resourcePath/scripts/sendSomeTraffic.sh ${APP_URL}
+
+      - name: dSendFinishEvent
+        type: Bash
+        configuration:
+          affinityGroup: Cloud_Automation_Webhook
+          integrations:
+            - name: rob00334Cred
+          inputResources:
+            - name: jfrogdemo_webhook_test
+          inputSteps:
+            - name: cAppUpCheck
+        execution:
+          onExecute:
+            - echo "$res_jfrogdemo_webhook_test_payload" | jq '.' > payload.json
+            - project=$(read_json payload.json "project")
+            - stage=$(read_json payload.json "stage")
+            - service=$(read_json payload.json "service")
+            - id=$(read_json payload.json "id")
+            - shkeptncontext=$(read_json payload.json "shkeptncontext")
+            - jfrogUrl=$(echo $step_url | cut -d? -f1)
+            - |
+              add_run_variables event_payload="$(cat <<-END
+                {
+                  "data": {
+                    "project": "$project",
+                    "stage": "$stage",
+                    "service": "$service",
+                    "status": "succeeded",
+                    "result": "pass",
+                    "test": {
+                      "jfrogTestUrl": "$jfrogUrl"
+                    },
+                    "labels": {
+                      "jfrogTestUrl": "$jfrogUrl"
+                    }
+                  },
+                  "source": "jfrog-pipeline",
+                  "specversion": "1.0",
+                  "type": "sh.keptn.event.test.finished",
+                  "shkeptncontext": "$shkeptncontext",
+                  "triggeredid": "$id"
+                }
+              END
+              )"
+            - 'curl -X POST "$int_rob00334Cred_BASE_URL/api/v1/event" -H "accept: application/json" -H "x-token: $int_rob00334Cred_API_TOKEN" -H "Content-Type: application/json" -d "$event_payload"'

@@ -127,10 +127,10 @@ pipelines:
                     "status": "succeeded",
                     "result": "pass",
                     "deployment": {
-                      "jfrogUrl": "$jfrogUrl"
+                      "jfrogDeployUrl": "$jfrogUrl"
                     },
                     "labels": {
-                      "jfrogUrl": "$jfrogUrl"
+                      "jfrogDeployUrl": "$jfrogUrl"
                     }
                   },
                   "source": "jfrog-pipeline",
