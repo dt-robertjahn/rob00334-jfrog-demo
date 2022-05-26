@@ -1,0 +1,108 @@
+resources:
+  - name: gitRepo   
+    type: GitRepo
+    configuration:
+      gitProvider: GitHub                      
+      path: dt-robertjahn/rob00334-jfrog-demo  
+      branches:
+        include: master  
+      buildOn:
+        commit: false
+
+  - name: demoappDockerImage
+    type: Image
+    configuration:
+      registry: artifactoryIntegration                                    
+      sourceRepository: art-docker-dynatrace                             
+      imageName: dtdemos.jfrog.io/art-docker-dynatrace/demoapp    
+      imageTag: ${BUILD_NUMBER}
+
+  - name: demoappBuildInfo
+    type: BuildInfo
+    configuration:
+      sourceArtifactory: artifactoryIntegration   
+      buildName: demoapp                                 
+      buildNumber: ${BUILD_NUMBER}                           
+
+  - name: demoappHelmChart
+    type: HelmChart
+    configuration:
+      sourceArtifactory: artifactoryIntegration       
+      repository: art-helm-charts-dynatrace                
+      chart: demoapp                           
+      version: 0.0.0
+
+pipelines:
+  - name: jfrogdemo_build_pipeline
+    configuration:
+      environmentVariables:
+        readOnly:
+          KEPTN_PROJECT: "jfrog-demo"
+          KEPTN_SERVICE: "demoapp"
+          KEPTN_STAGE: "staging"
+          FEATURE_NUMBER: "1"
+
+    steps:
+      - name: aDockerBuild
+        type: DockerBuild
+        configuration:
+          affinityGroup: buildAndPush
+          integrations:
+            - name: artifactoryIntegration
+          inputResources:
+            - name: gitRepo
+          dockerFileLocation: demoapp
+          dockerFileName: Dockerfile
+          dockerImageName: dtdemos.jfrog.io/art-docker-dynatrace/demoapp
+          dockerImageTag: ${BUILD_NUMBER}
+          dockerOptions: --build-arg FEATURE_NUMBER=${FEATURE_NUMBER}
+        execution:
+          onStart:
+            - add_run_variables BUILD_NUMBER=0.${FEATURE_NUMBER}.${run_number}
+
+      - name: bDockerPush
+        type: DockerPush
+        configuration:
+          affinityGroup: buildAndPush
+          autoPublishBuildInfo: true
+          integrations:
+            - name: artifactoryIntegration                  
+          targetRepository: art-docker-dynatrace           
+          inputSteps:
+            - name: aDockerBuild
+          outputResources:
+            - name: demoappBuildInfo                         
+            - name: demoappDockerImage                       
+
+      - name: cHelmPublish
+        type: HelmPublish
+        configuration:
+          affinityGroup: HelmPublish
+          helmVersion: 3                                    
+          chartPath: chart
+          inputSteps:
+            - name: bDockerPush
+          inputResources:
+            - name: gitRepo
+              trigger: false
+            - name: demoappDockerImage
+          outputResources:
+            - name: demoappHelmChart
+        execution:
+          onStart:
+            - CHART_APP_VERSION=0.${FEATURE_NUMBER}.${run_number}
+            - VALUES_IMAGE=${res_demoappDockerImage_imageName}
+            - VALUES_TAG=${res_demoappDockerImage_imageTag}
+            - VALUES_BUILD_NO=${run_number}
+            - echo "CHART_APP_VERSION = $CHART_APP_VERSION"
+            - echo "VALUES_IMAGE = $VALUES_IMAGE"
+            - echo "VALUES_TAG = $VALUES_TAG"
+            - echo "VALUES_BUILD_NO = $VALUES_BUILD_NO"
+            - pushd $res_gitRepo_resourcePath/chart
+            - "sed -ie \"s|^image: .*$|image: $VALUES_IMAGE|\" values.yaml"
+            - "sed -ie \"s|^imageTag: .*$|imageTag: $VALUES_TAG|\" values.yaml"
+            - "sed -ie \"s|^buildNo: .*$|buildNo: $VALUES_BUILD_NO|\" values.yaml"
+            - "sed -ie \"s|^appVersion: .*$|appVersion: $CHART_APP_VERSION|\" Chart.yaml"
+            - cat values.yaml
+            - cat Chart.yaml
+            - popd

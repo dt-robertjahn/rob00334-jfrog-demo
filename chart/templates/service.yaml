@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Values.keptnService }}"
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/component: "{{ .Values.keptnService }}"
+    app.kubernetes.io/part-of: "{{ .Values.keptnProject }}"
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: "{{ .Values.keptnService }}"
+  selector:
+    app.kubernetes.io/component: "{{ .Values.keptnService }}"
+    app.kubernetes.io/part-of: "{{ .Values.keptnProject }}"
+  type: LoadBalancer

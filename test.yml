@@ -1,0 +1,38 @@
+resources:
+  - name: gitRepoTest   
+    type: GitRepo
+    configuration:
+      gitProvider: GitHub                      
+      path: dt-robertjahn/rob00334-jfrog-demo  
+      branches:
+        include: master
+
+  - name: jfrogdemo_webhook_test
+    type: IncomingWebhook
+    configuration:
+      webhookName: jfrogdemo_webhook_test
+
+pipelines:
+  - name: jfrogdemo_test_pipeline
+    configuration:
+      environmentVariables:
+        readOnly:
+          KEPTN_SERVICE: "demoapp"
+          KEPTN_STAGE: "staging"
+
+    steps:
+      - name: aLoadTest
+        type: Bash
+        configuration:
+          affinityGroup: LoadTest
+          inputResources:
+            - name: gitRepoTest
+            - name: jfrogdemo_webhook_test
+          integrations:
+            - name: k8sIntegration
+        execution:
+          onExecute:
+            - kubectl config current-context
+            - APP_IP=$(kubectl -n ${KEPTN_STAGE} get service ${KEPTN_SERVICE} -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+            - add_run_variables APP_URL="http://${APP_IP}:8080"
+            - $res_gitRepoTest_resourcePath/scripts/sendSomeTraffic.sh ${APP_URL}

@@ -1,0 +1,97 @@
+resources:
+  - name: gitRepoDeploy   
+    type: GitRepo
+    configuration:
+      gitProvider: GitHub                      
+      path: dt-robertjahn/rob00334-jfrog-demo  
+      branches:
+        include: master  
+      buildOn:
+        commit: false
+                         
+  - name: demoappHelmChartDeploy
+    type: HelmChart
+    configuration:
+      sourceArtifactory: artifactoryIntegration       
+      repository: art-helm-charts-dynatrace                
+      chart: demoapp                        
+      version: 0.1.0
+
+  - name: jfrogdemo_webhook_deploy
+    type: IncomingWebhook
+    configuration:
+      webhookName: jfrogdemo_webhook_deploy
+
+pipelines:
+  - name: jfrogdemo_deploy_pipeline
+    configuration:
+      environmentVariables:
+        readOnly:
+          KEPTN_PROJECT: "jfrog-demo"
+          KEPTN_SERVICE: "demoapp"
+          KEPTN_STAGE: "staging"
+        
+    steps:
+      - name: aHelmDeploy
+        type: HelmDeploy
+        configuration:
+          lint: true
+          dryRun: true 
+          helmVersion: 3
+          affinityGroup: HelmDeploy
+          releaseName: demoapp
+          flags: "--set imageTag='${imageTag}' "
+          integrations:
+            - name: k8sIntegration
+            - name: artifactoryIntegration
+          inputResources:
+            - name: gitRepoDeploy
+              trigger: false
+            - name: demoappHelmChartDeploy
+            - name: jfrogdemo_webhook_deploy
+        execution:
+          onStart:
+            - echo "$res_jfrogdemo_webhook_deploy_payload" | jq '.' > payload.json
+            - add_run_variables imageTag=$(read_json payload.json "IMAGE_TAG")
+            - echo "Deploying imageTag ${imageTag}"
+          onSuccess:
+            - kubectl config current-context
+            - kubectl get pods -n ${KEPTN_STAGE}
+            - add_run_variables CLUSTER="$(kubectl config current-context)"
+
+      - name: bModifyHelmChartProperties
+        type: Bash
+        configuration:
+          affinityGroup: HelmDeploy
+          integrations:
+            - name: artifactoryIntegration
+          inputResources:
+            - name: demoappHelmChartDeploy
+            - name: gitRepoDeploy
+          inputSteps:
+            - name: aHelmDeploy
+        execution:
+          onExecute:
+            - JFROG_BASE_URL=${int_artifactoryIntegration_url}
+            - JFROG_API_KEY=${int_artifactoryIntegration_apikey}
+            - JFROG_REPO=${res_demoappHelmChartDeploy_repository}
+            - JFROG_ARTIFACT=demoapp-${res_demoappHelmChartDeploy_version}.tgz
+            - JFROG_PROPERTIES="KEPTN_PROJECT=${KEPTN_PROJECT}|KEPTN_SERVICE=${KEPTN_SERVICE}|KEPTN_STAGE=${KEPTN_STAGE}"
+            - $res_gitRepoDeploy_resourcePath/scripts/updateHelmChartProperties.sh ${JFROG_BASE_URL} ${JFROG_API_KEY} ${JFROG_REPO} ${JFROG_ARTIFACT} ${JFROG_PROPERTIES}
+
+      - name: cAppUpCheck
+        type: Bash
+        configuration:
+          affinityGroup: AppUpCheck
+          inputResources:
+            - name: gitRepoDeploy
+          integrations:
+            - name: k8sIntegration
+          inputSteps:
+            - name: bModifyHelmChartProperties
+        execution:
+          onExecute:
+            - kubectl config current-context
+            - APP_IP=$(kubectl -n ${KEPTN_STAGE} get service ${KEPTN_SERVICE} -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+            - add_run_variables APP_URL="http://${APP_IP}:8080"
+            - $res_gitRepoDeploy_resourcePath/scripts/appUpCheck.sh ${APP_URL}

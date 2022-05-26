@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demoapp
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: "{{ .Values.keptnService }}"
+      app.kubernetes.io/part-of: "{{ .Values.keptnProject }}"
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: "{{ .Values.keptnService }}"
+        app.kubernetes.io/part-of: "{{ .Values.keptnProject }}"
+        app.kubernetes.io/name: DemoNodeJsApp
+        app.kubernetes.io/version: "{{ .Values.imageTag }}"
+        app.kubernetes.io/managed-by: helm
+        app.kubernetes.io/created-by: dev-team-services 
+      annotations:
+        owner: Team Services
+        chat-channel: dev-team-services 
+    spec:
+      containers:
+      - name: "{{ .Values.keptnService }}"
+        image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+        imagePullPolicy:  {{ .Values.imagePullPolicy }}
+        ports:
+        - containerPort: 8080
+          name: "{{ .Values.keptnService }}"
+        env:
+        - name: DT_CUSTOM_PROP
+          value: "keptn_project={{ .Values.keptnProject }} keptn_service={{ .Values.keptnService }} keptn_stage={{ .Values.keptnStage }}"
+        - name: DT_RELEASE_PRODUCT
+          value: "{{ .Values.keptnProject }}"
+        - name: DT_RELEASE_VERSION
+          value: "{{ .Values.imageTag }}"
+        - name: DT_RELEASE_STAGE
+          value: "{{ .Values.namespace }}"
+        - name: DT_RELEASE_BUILD_VERSION
+          value: "{{ .Values.buildNo }}"
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecrets }}
