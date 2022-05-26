@@ -39,7 +39,7 @@ pipelines:
             - add_run_variables APP_URL="http://${APP_IP}:8080"
             - $res_gitRepoTest_resourcePath/scripts/sendSomeTraffic.sh ${APP_URL}
 
-      - name: dSendFinishEvent
+      - name: bSendFinishEvent
         type: Bash
         configuration:
           affinityGroup: Cloud_Automation_Webhook
@@ -48,7 +48,7 @@ pipelines:
           inputResources:
             - name: jfrogdemo_webhook_test
           inputSteps:
-            - name: cAppUpCheck
+            - name: aLoadTest
         execution:
           onExecute:
             - echo "$res_jfrogdemo_webhook_test_payload" | jq '.' > payload.json
