@@ -30,6 +30,7 @@ resources:
       sourceArtifactory: artifactoryIntegration       
       repository: art-helm-charts-dynatrace                
       chart: demoapp                           
+      version: ignore
 
 pipelines:
   - name: jfrogdemo_build_pipeline
