@@ -4,17 +4,6 @@ metadata:
   name: webhook-configuration
 spec:
   webhooks:
-    - type: sh.keptn.event.test.triggered
-      requests:
-        - curl --request POST
-          https://{{.env.secret_jfrogdemo_jfrogdemowebhooktest}}
-      envFrom:
-        - name: secret_jfrogdemo_jfrogdemowebhooktest
-          secretRef:
-            name: jfrog-demo
-            key: jfrogdemo_webhook_test
-      subscriptionID: c5289298-cd94-442c-b379-5596cb3064d6
-      sendFinished: true
     - type: sh.keptn.event.deployment.triggered
       requests:
         - "curl --header 'Content-type: application/json' --request POST --data
