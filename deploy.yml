@@ -104,8 +104,9 @@ pipelines:
           affinityGroup: Cloud_Automation_Webhook
           integrations:
             - name: rob00334Cred
-          inputSteps:
+          inputResources:
             - name: jfrogdemo_webhook_deploy
+          inputSteps:
             - name: cAppUpCheck
         execution:
           onExecute:
