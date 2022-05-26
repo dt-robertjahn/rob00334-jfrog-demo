@@ -16,3 +16,14 @@ spec:
             key: jfrogdemo_webhook_deploy
       subscriptionID: 75851814-992a-40b6-94ad-198d25953cd2
       sendFinished: true
+    - type: sh.keptn.event.test.triggered
+      requests:
+        - curl --request POST
+          https://{{.env.secret_jfrogdemo_jfrogdemowebhooktest}}
+      envFrom:
+        - name: secret_jfrogdemo_jfrogdemowebhooktest
+          secretRef:
+            name: jfrog-demo
+            key: jfrogdemo_webhook_test
+      subscriptionID: c5289298-cd94-442c-b379-5596cb3064d6
+      sendFinished: true
