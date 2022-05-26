@@ -6,7 +6,9 @@ resources:
       path: dt-robertjahn/rob00334-jfrog-demo  
       branches:
         include: master
-
+      buildOn:
+        commit: false
+        
   - name: jfrogdemo_webhook_test
     type: IncomingWebhook
     configuration:

@@ -27,3 +27,4 @@ for i in $(eval echo "{1..$LOOPS}");
     curl -s -I -X GET "$URL/api/invoke?url=http://www.dynatrace.com" | head -n 1 | cut -d$' ' -f2;
     curl -s -I -X GET "$URL/api/invoke?url=http://blog.dynatrace.com" | head -n 1 | cut -d$' ' -f2;
 done 
+echo "Done"
