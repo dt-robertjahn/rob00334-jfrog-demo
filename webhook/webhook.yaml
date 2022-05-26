@@ -51,3 +51,27 @@ spec:
             key: url
       subscriptionID: 1d8276f4-6fa2-4f0a-8f5e-23dfd00bd0f0
       sendFinished: true
+    - type: sh.keptn.event.evaluation.finished
+      requests:
+        - "curl --request POST --data 'payload={  \"blocks\":
+          [    {      \"type\" : \"section\",      \"text\" : {        \"type\":
+          \"mrkdwn\",        \"text\" : \"On Demand SLO
+          Results\"      }    },    {      \"type\" : \"section\",      \"text\"
+          : {        \"type\": \"mrkdwn\",        \"text\" : \"*Project:*
+          {{.data.project}}\\n*Service:* {{.data.service}}\\n*Stage:*
+          {{.data.stage}}\\n*Result:* {{.data.result}}
+          ({{.data.evaluation.score}} / 100)\\n*Bridge:*
+          {{.env.secret_bridge_url}}/trace/{{.shkeptncontext}}\"      }    }  ]\
+          }'
+          https://hooks.slack.com/services/{{.env.secret_slackwebhook_token}}"
+      envFrom:
+        - name: secret_slackwebhook_token
+          secretRef:
+            name: slack-webhook
+            key: token
+        - name: secret_bridge_url
+          secretRef:
+            name: bridge
+            key: url
+      subscriptionID: 35a31e25-2c6c-4805-9eed-e189208d846b
+      sendFinished: false
