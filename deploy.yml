@@ -61,14 +61,13 @@ pipelines:
             - kubectl get pods -n ${KEPTN_STAGE}
             - add_run_variables CLUSTER="$(kubectl config current-context)"
 
-      - name: bModifyHelmChartProperties
+      - name: bModifyArtifactProperties
         type: Bash
         configuration:
           affinityGroup: HelmDeploy
           integrations:
             - name: artifactoryIntegration
           inputResources:
-            - name: demoappHelmChartDeploy
             - name: gitRepoDeploy
           inputSteps:
             - name: aHelmDeploy
@@ -76,10 +75,10 @@ pipelines:
           onExecute:
             - JFROG_BASE_URL=${int_artifactoryIntegration_url}
             - JFROG_API_KEY=${int_artifactoryIntegration_apikey}
-            - JFROG_REPO=${res_demoappHelmChartDeploy_repository}
-            - JFROG_ARTIFACT=demoapp-${res_demoappHelmChartDeploy_version}.tgz
+            - JFROG_REPO=art-docker-dynatrace
+            - JFROG_ARTIFACT=demoapp/${imageTag}
             - JFROG_PROPERTIES="KEPTN_PROJECT=${KEPTN_PROJECT}|KEPTN_SERVICE=${KEPTN_SERVICE}|KEPTN_STAGE=${KEPTN_STAGE}"
-            - $res_gitRepoDeploy_resourcePath/scripts/updateHelmChartProperties.sh ${JFROG_BASE_URL} ${JFROG_API_KEY} ${JFROG_REPO} ${JFROG_ARTIFACT} ${JFROG_PROPERTIES}
+            - $res_gitRepoDeploy_resourcePath/scripts/updateArtifactProperties.sh ${JFROG_BASE_URL} ${JFROG_API_KEY} ${JFROG_REPO} ${JFROG_ARTIFACT} ${JFROG_PROPERTIES}
 
       - name: cAppUpCheck
         type: Bash
@@ -90,7 +89,7 @@ pipelines:
           integrations:
             - name: k8sIntegration
           inputSteps:
-            - name: bModifyHelmChartProperties
+            - name: bModifyArtifactProperties
         execution:
           onExecute:
             - kubectl config current-context
