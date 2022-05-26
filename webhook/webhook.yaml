@@ -33,24 +33,6 @@ spec:
             key: jfrogdemo_webhook_test
       subscriptionID: c5289298-cd94-442c-b379-5596cb3064d6
       sendFinished: false
-    - type: sh.keptn.event.evaluation.triggered
-      requests:
-        - "curl --header 'Content-Type: application/json' --request POST --data
-          '{\"jiraKey\":\"{{.data.release.jiraKey}}\",\"jiraMessage\":\"SLO
-          Evaluation for Project: {{.data.project}} Stage: {{.data.stage}}
-          Service:
-          {{.data.service}}\",\"result\":\"{{.data.result}}\",\"bridge\":\"{{.e\
-          nv.secret_bridge_url}}/evaluation/{{.shkeptncontext}}/{{.data.stage}}\
-          \"}'
-          https://automation.atlassian.com/pro/hooks/9be53cf516a9e3e0af08d3bd0c\
-          c215d77c0b985e"
-      envFrom:
-        - name: secret_bridge_url
-          secretRef:
-            name: bridge
-            key: url
-      subscriptionID: 1d8276f4-6fa2-4f0a-8f5e-23dfd00bd0f0
-      sendFinished: true
     - type: sh.keptn.event.evaluation.finished
       requests:
         - "curl --request POST --data 'payload={  \"blocks\":
