@@ -198,7 +198,7 @@ var server = http.createServer(function (req, res) {
 					res.writeHead(returnStatusCode, returnStatusCode == 200 ? 'OK' : 'ERROR', {'Content-Type': 'text/plain'});	
 					res.write(status);
 					res.end();					
-					log(SEVERITY_INFO, status);
+					console.log('error: '+status);
 				})
 			});
 		}
@@ -209,7 +209,7 @@ var server = http.createServer(function (req, res) {
 		if(url.pathname === "/api/feature") {
 			if (url.query["newFeatureNumber"] && url.query["newFeatureNumber"] != null) {
 				var newFeatureNumber = url.query["newFeatureNumber"];
-				log(SEVERITY_WARNING, "Somebody is changing! featureNumber from " + featureNumber + " to " + newFeatureNumber);
+				console.log("Somebody is changing! featureNumber from " + featureNumber + " to " + newFeatureNumber);
 
 				init(newFeatureNumber);
 			}
